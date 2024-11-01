@@ -2,7 +2,7 @@
 
 ask_question() {
   local level=$1
-  local questions
+  local questions=()
   local correct_answer user_answer
 
   # Define questions by level
@@ -32,14 +32,14 @@ ask_question() {
     ["4:Which ancient civilization built Machu Picchu?"]="The Inca"
   )
 
-  # Filter questions for the chosen level
-  questions=($(for key in "${!questions_by_level[@]}"; do [[ $key == "$level:"* ]] && echo "${key#*:}"; done))
+  # Use mapfile to store questions that match the chosen level
+  mapfile -t questions < <(for key in "${!questions_by_level[@]}"; do [[ $key == "$level:"* ]] && echo "${key#*:}"; done)
 
   for i in {1..5}; do
     question="${questions[RANDOM % ${#questions[@]}]}"
     correct_answer="${questions_by_level[$level:$question]}"
 
-    read -p "Question $i: $question " user_answer
+    read -r -p "Question $i: $question " user_answer
 
     if [[ "$user_answer" == "$correct_answer" ]]; then
       echo "Correct! Well done!"
@@ -57,14 +57,15 @@ main() {
   echo "3. Advanced History"
   echo "4. Expert History"
 
-  read -p "Enter the level number you want to attempt: " level
+  read -r -p "Enter the level number you want to attempt: " level
 
   if [[ $level =~ ^[1-4]$ ]]; then
     echo -e "\nYou have chosen Level $level. You will be asked 5 questions."
-    ask_question $level
+    ask_question "$level"
   else
     echo "Invalid level selected. Exiting."
   fi
 }
 
 main
+
