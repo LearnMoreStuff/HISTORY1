@@ -5,58 +5,39 @@ ask_question() {
   local questions
   local correct_answer user_answer
 
-  declare -A level1_questions=(
-    ["Who was the first President of the United States?"]="George Washington"
-    ["In which year did the Titanic sink?"]="1912"
-    ["Who discovered America?"]="Christopher Columbus"
-    ["What is the capital of France?"]="Paris"
-    ["Who wrote the play 'Romeo and Juliet'?"]="William Shakespeare"
+  # Define questions by level
+  declare -A questions_by_level=(
+    ["1:Who was the first President of the United States?"]="George Washington"
+    ["1:In which year did the Titanic sink?"]="1912"
+    ["1:Who discovered America?"]="Christopher Columbus"
+    ["1:What is the capital of France?"]="Paris"
+    ["1:Who wrote the play 'Romeo and Juliet'?"]="William Shakespeare"
+    
+    ["2:Who was the British Prime Minister during World War II?"]="Winston Churchill"
+    ["2:In which year did the Berlin Wall fall?"]="1989"
+    ["2:Who was the first man to step on the moon?"]="Neil Armstrong"
+    ["2:Which country was the first to grant women the right to vote?"]="New Zealand"
+    ["2:What was the ancient Egyptian writing system called?"]="Hieroglyphics"
+
+    ["3:Who was the Roman god of war?"]="Mars"
+    ["3:What year did the French Revolution begin?"]="1789"
+    ["3:Who was the longest-reigning British monarch before Queen Elizabeth II?"]="Queen Victoria"
+    ["3:Who was the main author of the Declaration of Independence?"]="Thomas Jefferson"
+    ["3:What empire was ruled by Genghis Khan?"]="The Mongol Empire"
+
+    ["4:In what year did the Soviet Union collapse?"]="1991"
+    ["4:Who was the last emperor of China?"]="Puyi"
+    ["4:What treaty ended World War I?"]="Treaty of Versailles"
+    ["4:What was the codename for the Battle of Normandy?"]="Operation Overlord"
+    ["4:Which ancient civilization built Machu Picchu?"]="The Inca"
   )
 
-  declare -A level2_questions=(
-    ["Who was the British Prime Minister during World War II?"]="Winston Churchill"
-    ["In which year did the Berlin Wall fall?"]="1989"
-    ["Who was the first man to step on the moon?"]="Neil Armstrong"
-    ["Which country was the first to grant women the right to vote?"]="New Zealand"
-    ["What was the ancient Egyptian writing system called?"]="Hieroglyphics"
-  )
-
-  declare -A level3_questions=(
-    ["Who was the Roman god of war?"]="Mars"
-    ["What year did the French Revolution begin?"]="1789"
-    ["Who was the longest-reigning British monarch before Queen Elizabeth II?"]="Queen Victoria"
-    ["Who was the main author of the Declaration of Independence?"]="Thomas Jefferson"
-    ["What empire was ruled by Genghis Khan?"]="The Mongol Empire"
-  )
-
-  declare -A level4_questions=(
-    ["In what year did the Soviet Union collapse?"]="1991"
-    ["Who was the last emperor of China?"]="Puyi"
-    ["What treaty ended World War I?"]="Treaty of Versailles"
-    ["What was the codename for the Battle of Normandy?"]="Operation Overlord"
-    ["Which ancient civilization built Machu Picchu?"]="The Inca"
-  )
-
-  case $level in
-    1) questions=("${!level1_questions[@]}") ;;
-    2) questions=("${!level2_questions[@]}") ;;
-    3) questions=("${!level3_questions[@]}") ;;
-    4) questions=("${!level4_questions[@]}") ;;
-    *)
-      echo "Invalid level."
-      return 1
-      ;;
-  esac
+  # Filter questions for the chosen level
+  questions=($(for key in "${!questions_by_level[@]}"; do [[ $key == "$level:"* ]] && echo "${key#*:}"; done))
 
   for i in {1..5}; do
-    question=${questions[RANDOM % ${#questions[@]}]}
-    correct_answer=${level1_questions[$question]}
-
-    case $level in
-      2) correct_answer=${level2_questions[$question]} ;;
-      3) correct_answer=${level3_questions[$question]} ;;
-      4) correct_answer=${level4_questions[$question]} ;;
-    esac
+    question="${questions[RANDOM % ${#questions[@]}]}"
+    correct_answer="${questions_by_level[$level:$question]}"
 
     read -p "Question $i: $question " user_answer
 
@@ -66,8 +47,6 @@ ask_question() {
       echo "Incorrect. The correct answer is $correct_answer."
     fi
   done
-
-  return 0
 }
 
 main() {
@@ -80,15 +59,12 @@ main() {
 
   read -p "Enter the level number you want to attempt: " level
 
-  case $level in
-    1|2|3|4)
-      echo -e "\nYou have chosen Level $level. You will be asked 5 questions."
-      ask_question $level
-      ;;
-    *)
-      echo "Invalid level selected. Exiting."
-      ;;
-  esac
+  if [[ $level =~ ^[1-4]$ ]]; then
+    echo -e "\nYou have chosen Level $level. You will be asked 5 questions."
+    ask_question $level
+  else
+    echo "Invalid level selected. Exiting."
+  fi
 }
 
 main
